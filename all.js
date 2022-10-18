@@ -7,9 +7,15 @@ let data = [];
 function getData() {
   axios.get(url).then(function (response) {
     data = response.data.filter(
-      (item) => item.作物名稱 != null && item.作物名稱 != "" && item.交易量 != 0
+      (item) =>
+        item.作物名稱 != null &&
+        item.作物名稱 != "" &&
+        item.交易量 != 0 &&
+        item.種類代碼.trim() != ""
     );
-    renderData(data);
+    typeData = data;
+    renderData(typeData);
+    reset();
   });
 }
 
@@ -35,37 +41,37 @@ function renderData(arr) {
 let typeData = [];
 const buttons = document.querySelector(".button-group");
 buttons.addEventListener("click", (e) => {
-  if (e.target.nodeName == "BUTTON") {
-    let tabs = document.querySelectorAll(".button-group button");
-    tabs.forEach((item) => {
-      item.classList.remove("active");
-    });
-    let type = e.target.dataset.type;
-    if (type == "N04") {
-      typeData = data.filter((item) => item.種類代碼 == "N04");
-    } else if (type == "N05") {
-      typeData = data.filter((item) => item.種類代碼 == "N05");
-    } else if (type == "N06") {
-      typeData = data.filter((item) => item.種類代碼 == "N06");
-    } else {
-      typeData = data;
-    }
-    e.target.classList.add("active");
-    renderData(typeData);
-    reset();
+  if (e.target.nodeName !== "BUTTON") {
+    return;
   }
+  let tabs = document.querySelectorAll(".button-group button");
+  tabs.forEach((item) => {
+    item.classList.remove("active");
+  });
+  let type = e.target.dataset.type;
+  if (type == "all") {
+    typeData = data;
+  } else if (type == "N04") {
+    typeData = data.filter((item) => item.種類代碼 == "N04");
+  } else if (type == "N05") {
+    typeData = data.filter((item) => item.種類代碼 == "N05");
+  } else if (type == "N06") {
+    typeData = data.filter((item) => item.種類代碼 == "N06");
+  }
+  e.target.classList.add("active");
+  renderData(typeData);
+  reset();
+  searchResult.textContent = "";
 });
 
 //search bar
 const search = document.querySelector(".search-group");
 const crop = document.querySelector("#crop");
 search.addEventListener("click", (e) => {
-  if (e.target.nodeName == "BUTTON") {
-    if (crop.value.trim() == "") {
-      return;
-    }
-    searchFor();
+  if (e.target.nodeName != "BUTTON" || crop.value.trim() == "") {
+    return;
   }
+  searchFor();
 });
 
 crop.addEventListener("keypress", (e) => {
@@ -74,15 +80,17 @@ crop.addEventListener("keypress", (e) => {
   }
 });
 
+const searchResult = document.querySelector("#js-crop-name");
 function searchFor() {
-  let filterData = [];
-  filterData = typeData.filter((item) => {
-    return item.作物名稱.toLowerCase().match(crop.value.toLowerCase().trim());
+  typeData = typeData.filter((item) => {
+    let result = crop.value.trim();
+    searchResult.textContent = `查看「${result}」的比價結果`;
+    return item.作物名稱.toLowerCase().match(result.toLowerCase());
   });
-  if (filterData.length == 0) {
+  if (typeData.length == 0) {
     list.innerHTML = `<tr><td colspan="6" class="text-center p-3">查詢不到交易資訊QQ</td></tr>`;
   } else {
-    renderData(filterData);
+    renderData(typeData);
   }
   reset();
   crop.value = "";
@@ -124,6 +132,7 @@ sortAdv.addEventListener("click", (e) => {
   if (e.target.nodeName == "I") {
     let sortPrice = e.target.dataset.price;
     let sortArrow = e.target.dataset.sort;
+    sort.value = `依${sortPrice}排序`;
     if (sortArrow == "up") {
       typeData.sort((a, b) => {
         return b[sortPrice] - a[sortPrice];
@@ -133,7 +142,6 @@ sortAdv.addEventListener("click", (e) => {
         return a[sortPrice] - b[sortPrice];
       });
     }
-    reset();
     renderData(typeData);
   }
 });
