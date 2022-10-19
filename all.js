@@ -51,12 +51,8 @@ buttons.addEventListener("click", (e) => {
   let type = e.target.dataset.type;
   if (type == "all") {
     typeData = data;
-  } else if (type == "N04") {
-    typeData = data.filter((item) => item.種類代碼 == "N04");
-  } else if (type == "N05") {
-    typeData = data.filter((item) => item.種類代碼 == "N05");
-  } else if (type == "N06") {
-    typeData = data.filter((item) => item.種類代碼 == "N06");
+  } else {
+    typeData = data.filter((item) => item.種類代碼 === type);
   }
   e.target.classList.add("active");
   renderData(typeData);
@@ -82,9 +78,9 @@ crop.addEventListener("keypress", (e) => {
 
 const searchResult = document.querySelector("#js-crop-name");
 function searchFor() {
+  let result = crop.value.trim();
+  searchResult.textContent = `查看「${result}」的比價結果`;
   typeData = typeData.filter((item) => {
-    let result = crop.value.trim();
-    searchResult.textContent = `查看「${result}」的比價結果`;
     return item.作物名稱.toLowerCase().match(result.toLowerCase());
   });
   if (typeData.length == 0) {
@@ -121,7 +117,7 @@ sort.addEventListener("change", (e) => {
 
 function selectChange(value) {
   typeData.sort((a, b) => {
-    return a[value] - b[value];
+    return b[value] - a[value];
   });
   renderData(typeData);
 }
